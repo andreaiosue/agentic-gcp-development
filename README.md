@@ -1,97 +1,97 @@
 # Agentic GCP Development Guide (Late 2026 Edition)
 
-This guide provides a comprehensive architectural breakdown of the late-2026 Google Cloud Platform (GCP) agentic ecosystem. It categorizes the tools into Core Platforms, Zero-Trust Security, Runtime & Memory, Ecosystem Protocols, and Orchestration. 
+This guide provides a comprehensive architectural breakdown of the Google Cloud Platform (GCP) agentic ecosystem. Google has recently reorganized its agentic suite under the **Gemini Enterprise Agent Platform** (formerly Vertex AI Agent Builder), structured around four core pillars: **Build, Scale, Govern, and Optimize**. 
 
-More importantly, it explains **how to combine them** based on whether you are building local coding assistants, low-code customer service bots, or fully autonomous enterprise agents that mutate production databases.
+This document categorizes the tools according to these pillars and explains how to combine them to create secure, production-grade autonomous systems.
 
 ---
 
-## 1. Core Agent Development & Platforms
+## 1. BUILD: Core Agent Development Platforms
 
 These tools serve as the primary environments and frameworks for designing, building, and prototyping AI agents.
 
-### Gemini Enterprise Agent Platform
-* **Relevance & Place:** The overarching enterprise umbrella for agentic development on GCP. It houses the low-code Agent Designer, the open-source ADK, and the managed Agent Runtime.
-* **How it fits:** Use this as your central hub in the GCP console. It provides a unified, cohesive client (`google-cloud-agentplatform`) to access runtimes, sessions, sandboxes, and memory banks.
-* **Not For:** Ungoverned, purely local hobbyist projects.
+### Agent Development Kit (ADK 2.0)
+* **Relevance & Place:** Google's open-source, code-first agent framework (available in Python, TypeScript, Go, and Java). It is the standard SDK for defining multi-tool, autonomous workflows using `Agent` and `Workflow` graph-based classes. 
+* **How it fits:** Use ADK when building complex enterprise agents that require deep programmatic control. You can build and test locally using the interactive `adk run` CLI or `adk web` UI, and then deploy to GCP using `adk deploy cloud_run` or `adk deploy docker`.
+* **Not For:** Drag-and-drop conversational agent building.
 
-### Antigravity (App, CLI, SDK, IDE, Extensions)
-* **Relevance & Place:** Google's dedicated "agent-first" development platform. It goes beyond a traditional AI IDE by allowing AI agents to autonomously plan, execute, and verify complex software tasks. It includes:
-  * **Editor:** A synchronous IDE experience for real-time coding alongside an agent.
-  * **Manager (Antigravity 2.0):** An asynchronous "mission control" view to spawn and monitor multiple local agents working on different tasks in parallel.
-* **How it fits:** Use Antigravity for your internal engineering teams to build software faster. Agents use "Artifacts" to prove they have verified their own work, building trust before humans review it.
-* **Not For:** Customer-facing customer support chatbots.
+### Google Antigravity
+* **Relevance & Place:** Google's dedicated "agent-first" developer platform designed to help engineers orchestrate code rather than just write it. It supports Gemini, Claude, and GPT models. It includes:
+  * **The Editor:** A synchronous IDE experience for real-time coding alongside an AI.
+  * **The Manager Surface:** An asynchronous mission control view to spawn, orchestrate, and observe multiple agents working in parallel across different workspaces.
+* **How it fits:** Use Antigravity for internal software engineering. You can dispatch background agents to reproduce issues, generate test cases, and implement fixes. Agents generate "Artifacts" so you can verify their logic and leave feedback without breaking their execution flow.
+* **Not For:** Building customer-facing support chatbots.
 
-### Agent Development Kit (ADK)
-* **Relevance & Place:** Google's open-source, code-first agent framework (Python, TypeScript, Go, Java). It is the standard SDK for defining multi-tool, autonomous workflows.
-* **How it fits:** Use ADK when building complex enterprise agents that need deep programmatic control. It seamlessly integrates with the `google-cloud-agentplatform` SDK to deploy directly to the Agent Runtime.
-
-### Agent Designer (formerly Customer Experience Agent Studio)
-* **Relevance & Place:** A visual, low-code development platform housed within the Gemini Enterprise Agent Platform. 
-* **How it fits:** Use this for CX teams and contact centers needing to rapidly deploy multimodal omnichannel support agents using pre-built templates and visual conversational flows.
-
-### Agents CLI 
-* **Relevance & Place:** The native command-line interface for the Agent Platform. 
-* **How it fits:** Use this during the ADK development loop. It provides an interactive terminal playground to test your agent, but more importantly, it generates automated Terraform infrastructure and CI/CD Cloud Build pipelines to securely deploy your agent to GCP.
+### Agent Studio & Agent Designer
+* **Relevance & Place:** A comprehensive visual development platform housed within the Agent Platform. Agent Designer is the interactive, low-code visual canvas for orchestrating agents and sub-agents.
+* **How it fits:** Use this for CX teams, business operators, and contact centers needing to rapidly deploy multimodal support agents using pre-built templates and visual conversational flows, with the ability to export straight to code.
 
 ### Google AI Studio
 * **Relevance & Place:** A lightweight, web-based prototyping environment.
-* **How it fits:** Use this strictly for rapid prompt testing, few-shot prompt crafting, and evaluating new model releases (like Gemini 3.8 Flash) before writing ADK code.
+* **How it fits:** Use this strictly for rapid prompt testing, few-shot prompt crafting, and evaluating new model capabilities before writing ADK code.
 
 ---
 
-## 2. Zero-Trust Security & Governance
+## 2. GOVERN: The Zero-Trust Security Stack
 
-When agents can independently issue refunds or execute code, traditional perimeter security fails. This stack ensures agents cannot destroy production state.
+When AI agents can independently issue refunds, modify databases, and execute code, traditional perimeter security fails. This stack ensures agents cannot destroy production state or leak data.
 
-### Hardware-Backed Signing (Cloud KMS + Agent Identity)
-* **Relevance & Place:** Assigns every agent a cryptographically attested SPIFFE identity. 
-* **How it fits:** Never share a single database connection pool among agents. Use Cloud Hardware Security Module (HSM) via Cloud KMS to force agents to cryptographically "sign" every state-changing database write. If an attacker injects a prompt to change a $10 refund to $10,000, the signature breaks, and the database rejects the commit.
+### Agent Identity & Cloud KMS (Hardware-Backed Signing)
+* **Relevance & Place:** Agent Identity gives every agent its own managed identity for access control and auditing. 
+* **How it fits:** Never share a single database connection pool among agents. Assign each agent its own Service Account and grant it signing permissions on an asymmetric key in Cloud KMS (Hardware Security Module). Every state-changing database write must be cryptographically signed by the agent. If an attacker alters a $149 refund to $10,000, the signature breaks, and the database rejects it.
 
 ### Code Execution Sandboxes (gVisor)
-* **Relevance & Place:** Kernel-level isolation for agents running code. Accessed natively via `client.sandboxes`.
-* **How it fits:** When an agent generates Python on the fly (e.g., to parse data or do complex math), running standard Docker containers is dangerous. Use gVisor sandboxes to isolate the execution so a hijacked agent cannot access the host network or read system files.
+* **Relevance & Place:** Kernel-level isolation for agents running code. 
+* **How it fits:** When an agent generates Python on the fly (e.g., to parse data or calculate math), running standard Docker containers is dangerous. Use gVisor sandboxes to isolate the execution. If a hijacked agent tries to read host files or open outbound network connections, gVisor blocks the system calls.
 
-### Semantic Gateway & Model Armor
-* **Relevance & Place:** Deterministic semantic firewalls and inline protection services.
-* **How it fits:** Place the Gateway as a reverse proxy in front of your foundational model and database. It screens LLM inputs/outputs to block prompt injections, jailbreaks, and PII leakage without relying on the LLM's own soft constraints.
+### Agent Gateway & Semantic Firewalls
+* **Relevance & Place:** A single policy enforcement point for every tool call and model interaction.
+* **How it fits:** Prompts are soft constraints; they degrade. The Agent Gateway acts as a deterministic reverse proxy in front of the model and database. It applies hard semantic firewall rules to incoming prompts and outgoing tool calls (e.g., enforcing refund maximums).
 
-### Agent Registry
-* **Relevance & Place:** The central internal source of truth storing A2A-compatible Agent Cards (JSON).
-* **How it fits:** Use this to standardize discovery. It tracks which agents, tools, and skills are approved for deployment across your enterprise tenant.
+### Agent Registry & Skill Registry
+* **Relevance & Place:** Agent Registry is the central internal catalog of every agent, tool, and MCP server in your organization. The Skill Registry handles reusable code blocks.
+* **How it fits:** Standardizes internal discovery, allowing teams to see exactly which agents and tools are approved for deployment within the enterprise tenant. 
+
+### Model Armor & Sensitive Data Protection (DLP)
+* **Relevance & Place:** Security and governance layers for input/output sanitization.
+* **How it fits:** Model Armor scans for AI-specific threats (prompt injection, jailbreaks). Sensitive Data Protection automatically masks, redacts, or tokenizes PII before it ever reaches the LLM.
 
 ---
 
-## 3. Runtime, Memory & Grounding
+## 3. SCALE: Runtime, Memory & Grounding
 
-These tools dictate where agents physically run, how they maintain state, and how they retrieve enterprise knowledge.
+These tools dictate where agents physically run, how they maintain context, and how they retrieve enterprise knowledge.
 
-### Agent Runtime
-* **Relevance & Place:** A managed hosting environment explicitly designed for agentic loops (accessed via `client.runtimes`). It supports Bring Your Own Container (BYOC) for deploying prebuilt custom images (e.g., via Artifact Registry).
-* **How it fits:** Use this to host your ADK agents in production. It natively handles the complex asynchronous execution loops of agents better than standard serverless web APIs (like Cloud Run).
+### Agent Engine (Agent Runtime)
+* **Relevance & Place:** The managed runtime designed specifically for deploying and scaling agents. 
+* **How it fits:** Deploy your ADK, LangChain, or LangGraph agents here. Agent Engine handles the infrastructure, multi-agent orchestration, and native context retention (short-term and long-term memory) so you don't have to build custom session-management backends.
 
-### Memory Banks & Sessions
-* **Relevance & Place:** Native persistence layers attached to the Agent Runtime (accessed via `client.memory_banks` and `client.sessions`).
-* **How it fits:** Instead of manually wiring up Firestore or Redis to track what a user said 20 minutes ago, rely on native Sessions for short-term conversational context, and Memory Banks for long-term user preferences and state.
-
-### RAG Engine & Agent Search
+### Agent Search, Vector Search 1.0 & RAG Engine
 * **Relevance & Place:** Managed enterprise search and Retrieval-Augmented Generation pipelines.
-* **How it fits:** Use these to ground your models in proprietary data. Point the RAG Engine at your Cloud Storage buckets or BigQuery tables, and it handles the chunking, embedding, and retrieval automatically.
+* **How it fits:** Use these to ground your models in your proprietary data. Agent Search provides ready-to-use RAG, Vector Search handles high-precision hybrid similarity searches, and the RAG Engine manages chunking and embedding pipelines automatically.
+
+### Supporting Cloud Infrastructure
+* **Cloud Run & GKE:** Standard compute environments. Use Cloud Run for stateless agent wrappers or Docker containers generated by the ADK; use GKE for massive, custom-orchestrated fleets.
+* **Cloud Storage & Databases (BigQuery, Cloud SQL, Firestore, Redis):** Use Cloud Storage as "unstructured memory" (drop-zones for PDFs and media). Use databases for persistent structured data storage and analytical tasks.
 
 ---
 
-## 4. Agentic Protocols (The Open Ecosystem)
+## 4. OPTIMIZE: Protocols, Evaluation & Observability
 
-* **A2A (Agent2Agent):** A standardized protocol/specification (using JSON Agent Cards) allowing disparate agents (even those not built on GCP) to discover and communicate with each other securely.
-* **MCP (Model Context Protocol):** An open standard for exposing data sources and external tools securely to models. 
-* **How they fit:** Implement these protocols in your ADK agents to prevent vendor lock-in and allow your GCP agents to communicate securely with third-party tools and partner agents.
+Protocols allow agents to connect to external systems, while evaluation tools ensure they behave correctly before and after deployment.
 
----
+### Model Context Protocol (MCP) servers
+* **Relevance & Place:** An open standard for securely exposing data sources, internal REST APIs, and external tools to models.
+* **How it fits:** Use MCP to connect your agents to diverse enterprise data sources securely without writing bespoke integration code for every new tool.
 
-## 5. Supporting Infrastructure & Orchestration
+### Agentic Protocols (A2A - Agent2Agent)
+* **Relevance & Place:** A standardized specification that allows disparate agents to publish capabilities, negotiate formats, and collaborate securely.
+* **How it fits:** Implement A2A to build complex multi-agent systems where specialized agents (e.g., a document processing agent and an approval routing agent) need to work together while maintaining enterprise compliance.
 
-* **Agent Evaluation (Gen AI Evaluation Service):** Use this *before* deployment. It applies LLM-as-a-judge rubrics and deterministic metrics to test an agent's execution trajectories, tool-use accuracy, and reasoning paths.
-* **Cloud Workflows & Cloud Tasks:** Use these for orchestrating long-running, durable agent trajectories (e.g., background data pipeline migrations) and managing queues that require Human-in-the-Loop (HITL) approvals.
-* **Cloud Storage:** Acts as "unstructured memory." Use it as a drop-zone for agents to read large PDFs or store generated multimodal artifacts (audio/video).
-* **Cloud Run & GKE:** Standard compute environments. Use Cloud Run for stateless agent wrappers; use GKE for massive, highly orchestrated multi-agent fleets requiring fine-grained networking outside the managed Agent Runtime.
-* **Google Cloud Observability (Cloud Trace & Cloud Logging):** Crucial for auditing. Cloud Trace maps the agent's exact "chain of thought" and tool-selection paths, while Logging captures the distinct actions for compliance auditing.
+### Agent Evaluation
+* **Relevance & Place:** Built-in and partner evaluation tools to test agent behavior.
+* **How it fits:** Use the ADK's `adk eval` command locally, or Vertex AI's evaluation service in the cloud, to test your agent's execution trajectories, reasoning, and tool accuracy against predefined criteria before deploying to production.
+
+### Google Cloud Observability (Cloud Logging and Cloud Trace)
+* **Relevance & Place:** Essential distributed tracing and logging.
+* **How it fits:** When a multi-agent system makes API calls, Cloud Trace maps the execution trajectory (how the agent reasoned and which tools it picked), while Cloud Logging captures the specific actions for compliance auditing.
