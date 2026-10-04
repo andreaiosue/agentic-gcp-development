@@ -1,6 +1,6 @@
 # Agentic GCP Development Guide
 
-This guide provides a comprehensive architectural breakdown of the Google Cloud Platform (GCP) agentic ecosystem. It categorizes the tools into Core Agent Platforms, Governance & Security, Runtime & Knowledge, Ecosystem Protocols, and Supporting Infrastructure. Each entry details the tool's relevance, its position in the ecosystem, and its ideal use cases.
+This guide provides a comprehensive architectural breakdown of the 2026 Google Cloud Platform (GCP) agentic ecosystem. It categorizes the tools into Core Agent Platforms, Governance & Security, Runtime & Knowledge, Ecosystem Protocols, and Supporting Infrastructure. Each entry details the tool's relevance, its position in the ecosystem, and its ideal use cases.
 
 ## 1. Core Agent Development & Platforms
 
@@ -11,15 +11,15 @@ These tools serve as the primary environments and frameworks for designing, buil
 * **Best Suited For:** End-to-end enterprise AI architecture, custom model tuning, and orchestrating complex gen-AI workloads.
 * **Not For:** Non-technical business users looking for a plug-and-play chatbot.
 
+### Antigravity (App, CLI, SDK, IDE, Extensions)
+* **Relevance & Place:** Google's dedicated agentic development platform for building and managing in the "agent-first" era. It acts as a comprehensive suite providing a command center for managing multiple local agents in parallel (Antigravity 2.0 App), a terminal-first execution surface (CLI), a rapid prototyping framework using Python (SDK), and a fully-featured agentic IDE with deep codebase understanding and artifact management.
+* **Best Suited For:** Developers (from frontend and full-stack to enterprise) who want a complete end-to-end local and cloud-connected environment to build, test, and manage autonomous coding agents, execute shell commands, and streamline development with "browser-in-the-loop" agents.
+* **Not For:** Non-technical business users looking for drag-and-drop conversational bots or simple single-turn generative chat interfaces.
+
 ### Agent Development Kit (ADK)
 * **Relevance & Place:** An open-source, code-first agent development framework available in Python, TypeScript, Go, and Java. It is the standard SDK for building, debugging, and defining agent trajectories before deploying to GCP.
 * **Best Suited For:** Developers building complex, custom autonomous agents that require deep programmatic control, custom logic loops, and local testing capabilities.
 * **Not For:** Drag-and-drop or low-code conversational agent building.
-
-### Antigravity (CLI, SDK, App)
-* **Relevance & Place:** A specialized Python SDK and environment tailored for building autonomous AI agents powered by Gemini. It provides a secure, stateful runtime loop and context management.
-* **Best Suited For:** Python developers specifically building highly autonomous, stateful agents that require continuous processing loops.
-* **Not For:** Simple Q&A bots or single-turn generative wrappers.
 
 ### Customer Experience Agent Studio
 * **Relevance & Place:** A comprehensive visual development platform tailored for customer service. It uses a low-code interface to build multimodal (text, voice, image) omnichannel support agents.
@@ -43,7 +43,7 @@ These tools serve as the primary environments and frameworks for designing, buil
 
 ---
 
-## 2. Governance, Identity & Security
+## 2. Governance, Identity & Security (The 2026 Governance Stack)
 
 As agentic systems scale, controlling what agents can do and who they are becomes critical. This suite manages agent trust and discovery.
 
@@ -100,7 +100,7 @@ These tools dictate where agents physically run and how they retrieve enterprise
 
 ---
 
-## 4. Agentic Protocols & External Ecosystem
+## 4. Agentic Protocols & External Ecosystem (Additional Tools)
 
 Protocols and curated hubs are necessary for multi-agent communication and standardizing tool use.
 
